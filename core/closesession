@@ -1,0 +1,23 @@
+#!/bin/bash
+
+base_dir=$cis_base_dir
+
+if [ "x$session_id" = "x" ]
+then
+
+  $base_dir/corelog "action=critical_error desc=\"attempt stop session without active session\" pid=$$ ppid=$PPID"
+
+  exit 1
+
+fi
+
+
+rm "$base_dir/sessions/$session_id.prm"
+
+
+
+$base_dir/core/corelog "action=close_session session_id=$session_id"
+
+$base_dir/core/sessionlog "action=close_session pid=$$ ppid=$PPID"
+
+exit 0

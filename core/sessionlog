@@ -1,0 +1,7 @@
+#!/bin/bash
+
+base_dir=$cis_base_dir
+
+log_file="$base_dir/sessions/$session_id.log"
+
+echo "$(date +%Y-%m-%d-%H-%M-%S) $1 $2 $3 ### pid=$$ ppid=$PPID" >>$log_file

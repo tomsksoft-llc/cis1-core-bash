@@ -1,0 +1,32 @@
+#!/bin/bash
+
+base_dir=$cis_base_dir
+
+param_name=$1
+
+params_file="$base_dir/sessions/$session_id.prm"
+
+
+
+while read -r str || [ -n "$str" ]
+do
+  
+  str_param_name=$(echo $str | awk -F "=" '{print $1}')
+
+  str_param_value=$(echo $str | awk -F "=" '{print $2}')
+
+
+  if [ "$str_param_name" = "$param_name" ]
+  then
+
+    echo "$str_param_value"
+    exit 0
+
+  fi
+done  <$params_file
+
+
+
+echo ""
+
+exit 0

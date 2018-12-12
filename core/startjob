@@ -1,0 +1,149 @@
+#!/bin/bash
+
+if [ "x$cis_base_dir" = "x" ]
+then
+
+  echo "FATAL: the base dir for CI system hasn't defined. Please define it in environment variable \"cis_base_dir\""
+  echo "Execution aborted"
+  exit 1
+
+fi
+
+base_dir=$cis_base_dir
+
+
+
+export job_name="$1"
+
+if [ "x$session_id" = "x" ]
+then
+
+  export session_id="$($base_dir/core/opensession)"
+  export session_opened_by_me=true
+
+  export parent_job_name=""
+  export parent_job_build_number=""
+
+else
+
+  export session_opened_by_me=false
+
+  export parent_job_name="$job_name"
+  export parent_job_build_number="$build_number"
+
+fi
+
+
+
+job_dir="${base_dir}/jobs/${job_name}"
+
+cd "$job_dir" || exit 1
+
+
+
+last_build_dir=$(ls -d 0????? | sort | tail -1 || echo "000000")
+
+build_dir="$(expr $last_build_dir + 1)"
+
+
+if [ "$build_dir" -lt 10 ] 
+then
+
+ build_dir="00000${build_dir}"
+
+elif [ "$build_dir" -lt "100" ]
+then
+
+    build_dir="0000${build_dir}"
+
+elif [ "$build_dir" -lt "1000" ] 
+then
+
+    build_dir="000${build_dir}"
+
+elif [ "$build_dir" -lt "10000" ] 
+then
+
+    build_dir="00${build_dir}"
+
+else
+    build_dir="0${build_dir}"
+fi
+
+export build_number=$build_dir
+
+
+
+mkdir "$job_dir/$build_dir"
+
+cd "$job_dir/$build_dir" || exit 1
+
+
+
+if [ -r "$job_dir/params" ]
+then
+
+
+  while read -r str || [ -n "$str" ]
+  do
+
+    param_name=$(echo "$str" | awk -F "=" '{print $1}')
+
+    if [ -z "$param_name" ]
+    then
+      continue
+    fi
+
+
+    if [ -z "$($base_dir/core/getparam $param_name)" ]
+    then
+
+      param_value=$(echo "$str" | awk -F "=" '{print $2}')
+
+      $base_dir/core/sessionlog "action=set_call_param_to_default param_name=$param_name param_value=$param_value"
+
+      $base_dir/core/setparam "$param_name" "$param_value"
+
+    fi
+  done <"$job_dir/params"
+
+
+fi
+
+
+
+cp $job_dir/script .
+
+$base_dir/core/sessionlog "action=start_job job_name=$job_name build_dir=$build_dir  pid=$$ ppid=$PPID"
+
+
+
+/bin/bash script >output.txt 2>&1
+
+res=$?
+
+echo $res >exitcode.txt
+
+
+
+echo "" >"$base_dir/sessions/$session_id.prm"
+
+$base_dir/core/sessionlog "action=end_job job_name=$job_name build_dir=$build_dir exit_code=$res pid=$$ ppid=$PPID"
+
+
+
+if [ "$session_opened_by_me" = true ]
+then
+
+  $base_dir/core/closesession
+  unset session_id
+
+else 
+
+  $base_dir/core/setvalue "last_job_name" "$job_name"
+  $base_dir/core/setvalue "last_job_build_number" "$build_number"
+
+fi
+
+
+exit $res

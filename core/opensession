@@ -1,0 +1,30 @@
+#!/bin/bash
+
+base_dir=$cis_base_dir
+
+
+
+if [ "x$session_id" != "x" ]
+then
+
+  $base_dir/corelog "action=critical_error desc=\"attempt start nested session\" session_id=$session_id"
+
+  exit 1
+
+fi
+
+
+
+export session_id="$(date +%Y-%m-%d-%H-%M-%S)-$$_$PPID"
+
+echo "" >"$base_dir/sessions/$session_id.dat"
+
+echo "" >"$base_dir/sessions/$session_id.prm"
+
+$base_dir/core/corelog "action=open_session session_id=$session_id"
+
+$base_dir/core/sessionlog "action=open_session pid=$$ ppid=$PPID"
+
+echo $session_id
+
+exit 0

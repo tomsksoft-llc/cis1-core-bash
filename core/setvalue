@@ -1,0 +1,63 @@
+#!/bin/bash
+
+base_dir=$cis_base_dir
+
+value_name=$1
+
+value=$2
+
+
+
+values_file="$base_dir/sessions/$session_id.dat"
+
+tmp_file="$base_dir/sessions/$session_id.dat$$"
+
+echo "" >$tmp_file
+
+
+
+value_was_set=false
+
+while read -r str || [ -n "$str" ]
+do
+  
+  str_value_name=$(echo $str | awk -F "=" '{print $1}')
+
+  if [ -z "$str_value_name" ]
+  then
+    continue
+  fi
+
+  str_value=$(echo $str | awk -F "=" '{print $2}')
+
+
+  if [ "$str_value_name" = "$value_name" ]
+  then
+
+    echo "$value_name=$value" >>$tmp_file
+
+    value_was_set=true
+
+  else
+
+    echo "$str" >>$tmp_file
+
+  fi
+done  <$values_file
+
+
+if [ "$value_was_set" = false ]
+then
+
+  echo "$value_name=$value" >>$tmp_file
+
+fi
+
+
+$base_dir/core/sessionlog "action=set_value value_name=$value_name value=\"$value\" pid=$$ ppid=$PPID"
+
+
+
+mv $tmp_file $values_file
+
+exit 0
