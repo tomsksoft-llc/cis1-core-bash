@@ -1,7 +1,7 @@
 #!/bin/bash
 
 echo "Hello. i'm job $job_name build $build_number."
-echo "I h've been started by parent job $parent_job_name build $parent_build_number."
+echo "I h've been started by parent job $parent_job_name build $parent_job_build_number"
 
 echo "Now we have in params file:"
 echo "---- start of cat:"
