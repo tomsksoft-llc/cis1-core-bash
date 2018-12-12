@@ -4,10 +4,10 @@
 !core/*
 
 !jobs/
-!jobs/*
-!jobs/*/*
-!jobs/**/script
-!jobs/**/params
+!jobs/internal/
+!jobs/internal/*/
+!jobs/internal/*/script
+!jobs/internal/**/params
 
 !libs/
 !libs/*

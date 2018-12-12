@@ -1,0 +1,12 @@
+#!/bin/bash
+
+echo "I'm simple job without args for core testing purpose only"
+
+echo "My name is $job_name build $build_number."
+echo "I h've been started by parent job $parent_job_name build $parent_build_number"
+
+echo "I've started successfully"
+
+echo "I'm fine, bye"
+
+exit 0

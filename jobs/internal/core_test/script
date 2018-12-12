@@ -1,0 +1,219 @@
+#!/bin/bash
+
+echo "Starting core of the CIS test sute"
+echo "I'm the job, my name is $job_name, build $build_number"
+
+
+#####################################################################
+
+test_name="session_id_set_and_top_job_flag_set"
+status="PASSED"
+
+echo ""
+echo "Start test: $test_name:"
+
+if [ "$session_opened_by_me" = true ]
+then
+
+  echo "I'm the top job in the session \"session_opened_by_me=true\""
+
+else
+ 
+  echo "I h've started by \"${parent_job_name}\" (session_started_by_me=false)"
+
+  if [ "x$parent_job_name" = "x" ]
+  then
+    echo "Env variable parent_job_name is empty or not set."
+    status="FAILED"
+  fi
+ 
+  if [ "x$parent_job_build_number" = "x" ]
+  then
+    echo "Env variable parent_job_build_number is empty or not set."
+    status="FAILED"
+  fi
+
+fi
+
+
+if [ "$status" = "FAILED" ]
+then
+
+  echo "Execution aborted."
+  exit 3
+
+fi
+
+echo "Test $test_name $status"
+
+
+
+#####################################################################
+
+test_name="set_and_read_session_valuse"
+status="PASSED"
+
+echo ""
+echo "Start test: $test_name"
+
+echo "Set value with name \"test_setvalue\" to \"test set value\""
+
+$cis_base_dir/core/setvalue "test_setvalue" "test set value"
+
+test_setvalue=$($cis_base_dir/core/getvalue test_setvalue)
+
+echo "Read test_setvalue with getvalue function result is: \"$test_setvalue\""
+
+
+if [ "$test_setvalue" != "test set value" ]
+then
+
+  echo "Value doesn't mach my expectation."
+  status="FAILED"
+
+fi
+
+
+if [ "$status" = "FAILED" ]
+then
+
+  echo "Execution aborted."
+  exit 3
+
+fi
+
+echo "Test $test_name $status"
+
+
+
+#####################################################################
+
+test_name="start_job_without_args"
+status="PASSED"
+
+echo ""
+echo "Start test: $test_name"
+
+"$cis_base_dir/core/startjob" "internal/core_test_sub_startjob_woargs"
+
+echo "Exit status of execution job core_test_sub_startjob_woargs is $?"
+
+
+last_job_name=$($cis_base_dir/core/getvalue last_job_name)
+last_job_build_number=$($cis_base_dir/core/getvalue last_job_build_number)
+
+echo "Value of last_job_name is $last_job_name"
+echo "Value of last_job_build_number is $last_job_build_number"
+
+
+if [ "$last_job_name" != "internal/core_test_sub_startjob_woargs" ]
+then
+
+  echo "Env value last_job_name must be core_test_sub_startjob_woargs, but no matter."
+  status="FAILED"
+
+fi
+
+
+if [ "x$last_job_build_number" = "x" ]
+then
+
+  echo "Env value last_job_build_number is empty or not set but must be set to non empty value."
+  status="FAILED"
+
+fi
+
+if [ "$status" = "FAILED" ]
+then
+
+  echo "Execution aborted."
+  exit 3
+
+fi
+
+echo "Test $test_name $status"
+
+
+
+#####################################################################
+
+
+test_name="start_job_with_args"
+status="PASSED"
+
+echo ""
+echo "Start test: $test_name"
+
+
+prepared_prm2="set to the non empty value"
+prepared_prm3="replace default value"
+
+$cis_base_dir/core/setparam "prm2" "$prepared_prm2"
+$cis_base_dir/core/setparam "prm3" "$prepared_prm3"
+
+echo "Now we have in call params array:"
+echo "---- start of cat:"
+cat $cis_base_dir/sessions/$session_id.prm
+echo "---- end of cat."
+
+echo "Start job core_test_sub_startjob_withargs"
+"$cis_base_dir/core/startjob" "internal/core_test_sub_startjob_withargs"
+
+echo "exit status=$?"
+echo ""
+
+prm1=$($cis_base_dir/core/getvalue prm1)
+prm2=$($cis_base_dir/core/getvalue prm2)
+prm3=$($cis_base_dir/core/getvalue prm3)
+
+echo "Child job just set his parameters prm1, prm2 and prm3 to session values. What I see in session values:"
+echo "prm1=$prm1"
+echo "prm2=$prm2"
+echo "prm3=$prm3"
+
+
+if [ "$prm2" != "$prepared_prm2" ] || [ "$prm3" != "$prepared_prm3" ]  || [ "$prm1" != "\"why?\"" ] 
+then
+
+  echo "Parameters has values that don't expected by me."
+  status="FAILED"
+
+fi
+
+
+if [ "$status" = "FAILED" ]
+then
+
+  echo "Execution aborted."
+  exit 3
+
+fi
+
+
+echo "Now all params must be deleted by core. Please, look:"
+echo "---- start of cat session params file:"
+cat "$cis_base_dir/sessions/$session_id.prm"
+echo "---- end of cat."
+
+prm1=$($cis_base_dir/core/getparam prm1)
+
+echo "Result of call getparam must be empty: prm1=\"$prm1\""
+
+if [ "x$prm1" != "x" ]
+then
+
+  echo "prm1 isn't empty."
+  status="FAILED"
+
+fi
+
+
+if [ "$status" = "FAILED" ]
+then
+
+  echo "Execution aborted."
+  exit 3
+
+fi
+
+echo "Test $test_name $status"
