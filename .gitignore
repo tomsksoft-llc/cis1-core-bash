@@ -1,0 +1,7 @@
+*
+!core/
+!jobs/
+!libs/
+!logs/
+!sessions/
+!.gitignore
