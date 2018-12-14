@@ -1,10 +1,19 @@
 #!/bin/bash
 
+function usage()
+{
+
+  echo "Usage: $(basename $0) project/job_name"
+
+}
+
+
+
 if [ "x$cis_base_dir" = "x" ]
 then
 
   echo "FATAL: the base dir for CI system hasn't defined. Please define it in environment variable \"cis_base_dir\""
-  echo "Execution aborted"
+  echo "Execution aborted."
   exit 1
 
 fi
@@ -13,25 +22,68 @@ base_dir=$cis_base_dir
 
 
 
-export job_name="$1"
-
 if [ "x$session_id" = "x" ]
 then
 
   export session_id="$($base_dir/core/opensession)"
+
   export session_opened_by_me=true
 
+
   export parent_job_name=""
+
   export parent_job_build_number=""
 
 else
 
   export session_opened_by_me=false
 
+
   export parent_job_name="$job_name"
+
   export parent_job_build_number="$build_number"
 
 fi
+
+
+
+check_can_start_job=true
+
+if [ "x$1" = "x" ]
+then
+
+  usage
+
+  $base_dir/core/corelog "action=error_use_startjob_without_job_name" 
+  $base_dir/core/sessionlog "action=error_use_startjob_without_job_name" 
+
+  check_can_start_job=false
+
+fi
+
+
+if [ ! -d "$cis_base_dir/jobs/$1" ]
+then
+
+  $base_dir/core/corelog "action=error_try_to_start_unexist_job job_name=\"$1\"" 
+  $base_dir/core/sessionlog "action=error_try_to_start_unexist_job job_name=\"$1\"" 
+
+  check_can_start_job=false
+
+fi
+
+
+if [ "$check_can_start_job" = false ] && [ "$session_opened_by_me" = true ]
+then
+
+  $base_dir/core/closesession
+  unset session_id
+
+  exit 1
+
+fi  
+
+export job_name="$1"
 
 
 
@@ -40,10 +92,18 @@ job_dir="${base_dir}/jobs/${job_name}"
 cd "$job_dir" || exit 1
 
 
+last_build_dir="000000"
 
-last_build_dir=$(ls -d 0????? | sort | tail -1 || echo "000000")
+last_build_dir=$(find -name '[0123456789][0123456789][0123456789][0123456789][0123456789][0123456789]' -type d | sed s/".\/"// | sort | tail -1 )
 
 build_dir="$(expr $last_build_dir + 1)"
+
+if [ "$build_dir" -eq 1000000 ]
+then
+
+  build_dir="1"
+
+fi
 
 
 if [ "$build_dir" -lt 10 ] 
@@ -51,30 +111,49 @@ then
 
  build_dir="00000${build_dir}"
 
-elif [ "$build_dir" -lt "100" ]
+elif [ "$build_dir" -lt 100 ]
 then
 
     build_dir="0000${build_dir}"
 
-elif [ "$build_dir" -lt "1000" ] 
+elif [ "$build_dir" -lt 1000 ] 
 then
 
     build_dir="000${build_dir}"
 
-elif [ "$build_dir" -lt "10000" ] 
+elif [ "$build_dir" -lt 10000 ] 
 then
 
     build_dir="00${build_dir}"
 
-else
+elif [ "$build_dir" -lt 100000 ] 
+then
+
     build_dir="0${build_dir}"
+
 fi
 
 export build_number=$build_dir
 
 
 
-mkdir "$job_dir/$build_dir"
+if ! mkdir "$job_dir/$build_dir"
+then
+
+  $base_dir/core/corelog "action=error_cant_mkdir_for_job_build job_name=\"$job_name\" build_dir=\"$build_dir\"" 
+  $base_dir/core/sessionlog "action=error_cant_mkdir_for_job_build job_name=\"$job_name\" build_dir=\"$build_dir\"" 
+
+  if [ "$session_opened_by_me" = true ]
+  then
+
+    $base_dir/core/closesession
+    unset session_id
+
+  fi  
+
+  exit 1
+
+fi
 
 cd "$job_dir/$build_dir" || exit 1
 
@@ -100,9 +179,9 @@ then
 
       param_value=$(echo "$str" | awk -F "=" '{print $2}')
 
-      $base_dir/core/sessionlog "action=set_call_param_to_default param_name=$param_name param_value=$param_value"
-
       $base_dir/core/setparam "$param_name" "$param_value"
+
+      $base_dir/core/sessionlog "action=set_call_param_to_default param_name=$param_name param_value=$param_value"
 
     fi
   done <"$job_dir/params"
