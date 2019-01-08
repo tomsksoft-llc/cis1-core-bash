@@ -12,8 +12,10 @@ function usage()
 if [ "x$cis_base_dir" = "x" ]
 then
 
+  echo ""
   echo "FATAL: the base dir for CI system hasn't defined. Please define it in environment variable \"cis_base_dir\""
   echo "Execution aborted."
+  echo ""
   exit 1
 
 fi
@@ -26,6 +28,8 @@ if [ "x$session_id" = "x" ]
 then
 
   export session_id="$($base_dir/core/opensession)"
+
+  echo "$session_id"
 
   export session_opened_by_me=true
 
@@ -47,14 +51,20 @@ fi
 
 
 
+export job_name="$1"
+
+$base_dir/core/sessionlog "action=try_to_start_job job_name=\"$job_name\""
+
+
+
 check_can_start_job=true
 
-if [ "x$1" = "x" ]
+if [ "x$job_name" = "x" ]
 then
 
   usage
 
-  $base_dir/core/corelog "action=error_use_startjob_without_job_name" 
+  $base_dir/core/corelog "session_id=$session_id action=error_use_startjob_without_job_name" 
   $base_dir/core/sessionlog "action=error_use_startjob_without_job_name" 
 
   check_can_start_job=false
@@ -62,15 +72,27 @@ then
 fi
 
 
-if [ ! -d "$cis_base_dir/jobs/$1" ]
+if [ ! -d "$cis_base_dir/jobs/$job_name" ]
 then
 
-  $base_dir/core/corelog "action=error_try_to_start_unexist_job job_name=\"$1\"" 
-  $base_dir/core/sessionlog "action=error_try_to_start_unexist_job job_name=\"$1\"" 
+  $base_dir/core/corelog "session_id=$session_id action=error_try_to_start_unexisted_job job_name=\"$job_name\"" 
+  $base_dir/core/sessionlog "action=error_try_to_start_unexisted_job job_name=\"$job_name\"" 
 
   check_can_start_job=false
 
 fi
+
+
+if [ ! -f "$cis_base_dir/jobs/$job_name/script" ]
+then
+
+  $base_dir/core/corelog "session_id=$session_id action=error_cant_find_script_file job_name=\"$job_name\"" 
+  $base_dir/core/sessionlog "action=error_cant_find_script_file job_name=\"$job_name\"" 
+
+  check_can_start_job=false
+
+fi
+
 
 
 if [ "$check_can_start_job" = false ] && [ "$session_opened_by_me" = true ]
@@ -82,8 +104,6 @@ then
   exit 1
 
 fi  
-
-export job_name="$1"
 
 
 
@@ -140,7 +160,7 @@ export build_number=$build_dir
 if ! mkdir "$job_dir/$build_dir"
 then
 
-  $base_dir/core/corelog "action=error_cant_mkdir_for_job_build job_name=\"$job_name\" build_dir=\"$build_dir\"" 
+  $base_dir/core/corelog "session_id=$session_id action=error_cant_mkdir_for_job_build job_name=\"$job_name\" build_dir=\"$build_dir\"" 
   $base_dir/core/sessionlog "action=error_cant_mkdir_for_job_build job_name=\"$job_name\" build_dir=\"$build_dir\"" 
 
   if [ "$session_opened_by_me" = true ]
@@ -162,6 +182,7 @@ cd "$job_dir/$build_dir" || exit 1
 if [ -r "$job_dir/params" ]
 then
 
+  declare -A parameters
 
   while read -r str || [ -n "$str" ]
   do
@@ -173,19 +194,40 @@ then
       continue
     fi
 
+    parameters[$param_name]=$(echo "$str" | awk -F "=" '{print $2}')
+
+  done <"$job_dir/params"
+
+
+  for param_name in "${!parameters[@]}"
+  do
+
+    if [ "$session_opened_by_me" = true ]
+    then
+  
+      echo "Type param value for parameter $param_name (Enter for default value\"${parameters[$param_name]}\")"
+      read -r param_value 
+
+      if [ -n "$param_value" ]
+      then
+
+        $base_dir/core/setparam "$param_name" "$param_value"
+
+      fi
+    fi
+
 
     if [ -z "$($base_dir/core/getparam $param_name)" ]
     then
 
-      param_value=$(echo "$str" | awk -F "=" '{print $2}')
+      param_value=${parameters["$param_name"]}
 
       $base_dir/core/setparam "$param_name" "$param_value"
-
       $base_dir/core/sessionlog "action=set_call_param_to_default param_name=$param_name param_value=$param_value"
 
     fi
-  done <"$job_dir/params"
 
+  done
 
 fi
 
@@ -193,11 +235,16 @@ fi
 
 cp $job_dir/script .
 
-$base_dir/core/sessionlog "action=start_job job_name=$job_name build_dir=$build_dir  pid=$$ ppid=$PPID"
+$base_dir/core/sessionlog "action=start_job job_name=$job_name build_dir=$build_dir pid=$$ ppid=$PPID"
+echo "session_id=$session_id action=start_job job_name=$job_name build_dir=$build_dir pid=$$ ppid=$PPID"
+
+echo "$session_id" >output.txt
+echo "session_id=$session_id action=start_job job_name=$job_name build_dir=$build_dir pid=$$ ppid=$PPID" >>output.txt
+echo "parent_job_name=$parent_job_name parent_job_build_number=$parent_job_build_number" >>output.txt
 
 
 
-/bin/bash script >output.txt 2>&1
+/bin/bash script >>output.txt 2>&1
 
 res=$?
 

@@ -68,7 +68,7 @@ echo "Read test_setvalue with getvalue function result is: \"$test_setvalue\""
 if [ "$test_setvalue" != "test set value" ]
 then
 
-  echo "Value doesn't mach my expectation."
+  echo "Value doesn't match my expectation."
   status="FAILED"
 
 fi

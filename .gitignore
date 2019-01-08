@@ -7,7 +7,7 @@
 !jobs/internal/
 !jobs/internal/*/
 !jobs/internal/*/script
-!jobs/internal/**/params
+!jobs/internal/*/params
 
 !libs/
 !libs/*
