@@ -205,7 +205,7 @@ then
     if [ "$session_opened_by_me" = true ]
     then
   
-      echo "Type param value for parameter $param_name (Enter for default value\"${parameters[$param_name]}\")"
+      echo "Type param value for parameter $param_name (\"Enter\" for default value:\"${parameters[$param_name]}\")"
       read -r param_value 
 
       if [ -n "$param_value" ]
@@ -271,5 +271,5 @@ else
 
 fi
 
-
+echo "Exit code: $res"
 exit $res
