@@ -1,7 +1,5 @@
 #!/bin/bash
 
-base_dir=$cis_base_dir
-
-log_file="$base_dir/logs/log.txt"
+log_file="$cis_base_dir/logs/log.txt"
 
 echo "$(date +%Y-%m-%d:%T) $1 $2 $3 ### pid=$$ ppid=$PPID session_id=$session_id" >>$log_file

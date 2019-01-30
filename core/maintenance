@@ -1,0 +1,227 @@
+#!/bin/bash
+
+
+
+if [ -f "$cis_base_dir/logs/maintenance.pid" ] && [ -n "$(ps | awk '{print $1 $4}' | grep $(cat $cis_base_dir/logs/maintenance.pid)maintenance)" ]
+then
+
+  #echo "Another maintenance provess already running. Execution aborted."
+  exit 0
+
+fi
+
+
+echo "$$" >"$cis_base_dir/logs/maintenance.pid"
+
+
+
+function job_maintenance()
+{
+
+local job_dir=$1
+
+values_file="$job_dir/config"
+
+
+
+local keep_last_success_builds="undefined"
+
+local keep_last_break_builds="undefined"
+
+
+
+if [ -r "$values_file" ]
+then
+
+  while read -r str || [ -n "$str" ]
+  do
+  
+    str_value_name=$(echo $str | awk -F "=" '{print $1}')
+  
+    str_value=$(echo $str | awk -F "=" '{print $2}')
+  
+  
+    if [ "$str_value_name" = "keep_last_success_builds" ]
+    then
+  
+      keep_last_success_builds="$(echo $str_value | tr -d '\r' )"
+  
+    elif [ "$str_value_name" = "keep_last_break_builds" ]
+    then
+  
+      keep_last_break_builds="$(echo $str_value | tr -d '\r' )"
+
+    fi
+  
+  done  <$values_file
+
+fi
+
+
+
+expr 1 + $keep_last_success_builds &> /dev/null
+
+if [ "$?" != 0 ]
+then
+
+  #echo "Aborted: keep_last_success_builds=$keep_last_success_builds"
+  return 0
+
+fi
+
+
+expr 1 + $keep_last_break_builds &> /dev/null
+
+if [ "$?" != 0 ]
+then
+
+  #echo "Aborted: keep_last_break_builds=$keep_last_break_builds"
+  return 0
+
+fi
+
+
+
+cd $job_dir || exit 3
+
+echo "job_dir=$job_dir"
+
+echo "keep_last_success_builds=$keep_last_success_builds"
+
+echo "keep_last_break_builds=$keep_last_break_builds"
+
+
+
+local success_builds_count=0
+
+local break_builds_count=0
+
+
+builds_list="$(ls -t -c | grep '[0123456789][0123456789][0123456789][0123456789][0123456789][0123456789]' | tail -n +2)"
+
+for build_dir in $builds_list
+do
+
+  local its_success_build=false
+
+  if [ -f "$build_dir/exitcode.txt" ]
+  then
+
+    if [ "$(cat $build_dir/exitcode.txt)" = "0" ]
+    then
+
+      its_success_build=true
+
+    fi
+
+  fi
+
+
+
+  local flag_delete_this_build=false
+
+  if [ "$its_success_build" = true ]
+  then
+
+    success_builds_count=$(( success_builds_count + 1 ))
+ 
+    if [ $success_builds_count -gt $keep_last_success_builds ]
+    then
+
+        flag_delete_this_build=true
+
+    fi
+    
+  else
+
+    break_builds_count=$(( break_builds_count + 1 ))
+ 
+    if [ $break_builds_count -gt $keep_last_break_builds ]
+    then
+
+        flag_delete_this_build=true
+
+    fi
+
+  fi
+
+
+
+  if [ $flag_delete_this_build = true ] 
+  then
+ 
+    rm -rf $job_dir/$build_dir &>/dev/null
+
+    $cis_base_dir/core/corelog  "action=delete_old_build job_dir/build_dir=$job_dir/$build_dir"
+
+  fi
+
+done
+
+
+return 0
+
+}
+
+
+
+function jobs_maintenance_loop()
+{
+
+local project_dir=$1
+
+local jobs_list="$(find $project_dir -maxdepth 1 -and -type d | tail -n +2)"
+
+
+local job_dir=""
+
+for job_dir in $jobs_list
+do
+
+  sleep 3
+
+  if [ -n "$(echo $job_dir | grep '.git' )" ]
+  then
+    continue
+  fi
+
+  job_maintenance "$job_dir"
+
+  #$cis_base_dir/core/corelog  "action=start_job_maintenance job_dir=$job_dir"
+
+done
+
+}
+
+
+
+function projects_maintenance_loop()
+{
+
+local projects_list="$(find $cis_base_dir/jobs/ -maxdepth 1 -and -type d | tail -n +2)"
+
+for project_dir in $projects_list
+do
+
+  sleep 30
+
+  #$cis_base_dir/core/corelog "action=start_jobs_maintenance_loop project_dir=$project_dir"
+
+  jobs_maintenance_loop "$project_dir"
+
+done
+
+}
+
+
+
+while [ "1" = "1" ]
+do
+
+sleep 150
+
+$cis_base_dir/core/corelog "action=start_projects_maintenance_loop"
+
+projects_maintenance_loop
+
+done

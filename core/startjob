@@ -20,14 +20,12 @@ then
 
 fi
 
-base_dir=$cis_base_dir
-
 
 
 if [ "x$session_id" = "x" ]
 then
 
-  export session_id="$($base_dir/core/opensession)"
+  export session_id="$($cis_base_dir/core/opensession)"
 
   echo "$session_id"
 
@@ -53,7 +51,7 @@ fi
 
 export job_name="$1"
 
-$base_dir/core/sessionlog "action=try_to_start_job job_name=\"$job_name\""
+$cis_base_dir/core/sessionlog "action=try_to_start_job job_name=\"$job_name\""
 
 
 
@@ -64,8 +62,8 @@ then
 
   usage
 
-  $base_dir/core/corelog "session_id=$session_id action=error_use_startjob_without_job_name" 
-  $base_dir/core/sessionlog "action=error_use_startjob_without_job_name" 
+  $cis_base_dir/core/corelog "action=error_use_startjob_without_job_name" 
+  $cis_base_dir/core/sessionlog "action=error_use_startjob_without_job_name" 
 
   check_can_start_job=false
 
@@ -75,8 +73,8 @@ fi
 if [ ! -d "$cis_base_dir/jobs/$job_name" ]
 then
 
-  $base_dir/core/corelog "session_id=$session_id action=error_try_to_start_unexisted_job job_name=\"$job_name\"" 
-  $base_dir/core/sessionlog "action=error_try_to_start_unexisted_job job_name=\"$job_name\"" 
+  $cis_base_dir/core/corelog "action=error_try_to_start_unexisted_job job_name=\"$job_name\"" 
+  $cis_base_dir/core/sessionlog "action=error_try_to_start_unexisted_job job_name=\"$job_name\"" 
 
   check_can_start_job=false
 
@@ -86,8 +84,8 @@ fi
 if [ ! -f "$cis_base_dir/jobs/$job_name/script" ]
 then
 
-  $base_dir/core/corelog "session_id=$session_id action=error_cant_find_script_file job_name=\"$job_name\"" 
-  $base_dir/core/sessionlog "action=error_cant_find_script_file job_name=\"$job_name\"" 
+  $cis_base_dir/core/corelog "action=error_cant_find_script_file job_name=\"$job_name\"" 
+  $cis_base_dir/core/sessionlog "action=error_cant_find_script_file job_name=\"$job_name\"" 
 
   check_can_start_job=false
 
@@ -98,7 +96,7 @@ fi
 if [ "$check_can_start_job" = false ] && [ "$session_opened_by_me" = true ]
 then
 
-  $base_dir/core/closesession
+  $cis_base_dir/core/closesession
   unset session_id
 
   exit 1
@@ -107,7 +105,7 @@ fi
 
 
 
-job_dir="${base_dir}/jobs/${job_name}"
+job_dir="$cis_base_dir/jobs/${job_name}"
 
 cd "$job_dir" || exit 1
 
@@ -160,13 +158,13 @@ export build_number=$build_dir
 if ! mkdir "$job_dir/$build_dir"
 then
 
-  $base_dir/core/corelog "session_id=$session_id action=error_cant_mkdir_for_job_build job_name=\"$job_name\" build_dir=\"$build_dir\"" 
-  $base_dir/core/sessionlog "action=error_cant_mkdir_for_job_build job_name=\"$job_name\" build_dir=\"$build_dir\"" 
+  $cis_base_dir/core/corelog "action=error_cant_mkdir_for_job_build job_name=\"$job_name\" build_dir=\"$build_dir\"" 
+  $cis_base_dir/core/sessionlog "action=error_cant_mkdir_for_job_build job_name=\"$job_name\" build_dir=\"$build_dir\"" 
 
   if [ "$session_opened_by_me" = true ]
   then
 
-    $base_dir/core/closesession
+    $cis_base_dir/core/closesession
     unset session_id
 
   fi  
@@ -211,19 +209,19 @@ then
       if [ -n "$param_value" ]
       then
 
-        $base_dir/core/setparam "$param_name" "$param_value"
+        $cis_base_dir/core/setparam "$param_name" "$param_value"
 
       fi
     fi
 
 
-    if [ -z "$($base_dir/core/getparam $param_name)" ]
+    if [ -z "$($cis_base_dir/core/getparam $param_name)" ]
     then
 
       param_value=${parameters["$param_name"]}
 
-      $base_dir/core/setparam "$param_name" "$param_value"
-      $base_dir/core/sessionlog "action=set_call_param_to_default param_name=$param_name param_value=$param_value"
+      $cis_base_dir/core/setparam "$param_name" "$param_value"
+      $cis_base_dir/core/sessionlog "action=set_call_param_to_default param_name=$param_name param_value=$param_value"
 
     fi
 
@@ -235,7 +233,7 @@ fi
 
 cp $job_dir/script .
 
-$base_dir/core/sessionlog "action=start_job job_name=$job_name build_dir=$build_dir pid=$$ ppid=$PPID"
+$cis_base_dir/core/sessionlog "action=start_job job_name=$job_name build_dir=$build_dir pid=$$ ppid=$PPID"
 echo "session_id=$session_id action=start_job job_name=$job_name build_dir=$build_dir pid=$$ ppid=$PPID"
 
 echo "$session_id" >output.txt
@@ -252,24 +250,26 @@ echo $res >exitcode.txt
 
 
 
-echo "" >"$base_dir/sessions/$session_id.prm"
+echo "" >"$cis_base_dir/sessions/$session_id.prm"
 
-$base_dir/core/sessionlog "action=end_job job_name=$job_name build_dir=$build_dir exit_code=$res pid=$$ ppid=$PPID"
+$cis_base_dir/core/sessionlog "action=end_job job_name=$job_name build_dir=$build_dir exit_code=$res pid=$$ ppid=$PPID"
 
 
 
 if [ "$session_opened_by_me" = true ]
 then
 
-  $base_dir/core/closesession
+  $cis_base_dir/core/closesession
   unset session_id
 
 else 
 
-  $base_dir/core/setvalue "last_job_name" "$job_name"
-  $base_dir/core/setvalue "last_job_build_number" "$build_number"
+  $cis_base_dir/core/setvalue "last_job_name" "$job_name"
+  $cis_base_dir/core/setvalue "last_job_build_number" "$build_number"
 
 fi
+
+$cis_base_dir/core/maintenance 2>/dev/null & 
 
 echo "Exit code: $res"
 exit $res

@@ -1,10 +1,8 @@
 #!/bin/bash
 
-base_dir=$cis_base_dir
-
 param_name=$1
 
-params_file="$base_dir/sessions/$session_id.prm"
+params_file="$cis_base_dir/sessions/$session_id.prm"
 
 
 
