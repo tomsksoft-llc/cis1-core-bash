@@ -1,0 +1,2 @@
+keep_last_success_builds=10
+keep_last_break_builds=10
