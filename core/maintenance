@@ -1,8 +1,6 @@
 #!/bin/bash
 
-
-
-if [ -f "$cis_base_dir/logs/maintenance.pid" ] && [ -n "$(ps ax | awk '{print $1 $6}' | grep $(cat $cis_base_dir/logs/maintenance.pid)maintenance)" ]
+if [ -f "$cis_base_dir/logs/maintenance.pid" ] && [ -n "$(ps axo pid,args | grep $(cat $cis_base_dir/logs/maintenance.pid) | grep maintenance | grep -v grep)" ]
 then
 
   #echo "Another maintenance provess already running. Execution aborted."
