@@ -3,6 +3,9 @@
 !core/
 !core/*
 
+!docs/
+!docs/*
+
 !jobs/
 !jobs/internal/
 !jobs/internal/*/

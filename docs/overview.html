@@ -1,0 +1,63 @@
+<HTML>
+<HEAD>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<TITLE>
+Overview for cis1-core-bash
+</TITLE>
+</HEAD>
+<BODY>
+
+<h1>Описание компоненты cis1-core-bash</h1>
+
+<p>
+Данная компонента является Ядром cis1.<br />
+Компонента разработана на скриптовом языке bash.<br />
+Компонента полностью совместима с ОС семейства Linux, и возможно ее можно запустить на ОС Windows, если установить на нее определенные расширения, поддерживающие POSIX.
+</p>
+
+<p>
+Компонента полностью удовлетворяет общим требования к ядру cis1 и реализует его бизнес-логику.
+Общее описание можно найти в репозитарии cis1-docs, файл overview.html.
+</p>
+
+<h2>Передача параметров в дочернюю задачу</h2>
+
+<pre>
+$cis_base_dir/setparam param_name param_value
+</pre>
+<p>
+<pre>
+Example:
+$cis_base_dir/core/setparam "prm2" "$prepared_prm2"
+$cis_base_dir/core/setparam "prm3" "$prepared_prm3"
+$cis_base_dir/core/startjob internal/core_test_sub_startjob_withargs
+</pre>
+</p>
+
+
+<h2>Механизм глобальных переменных сессии</h2>
+
+<br />Запись переменной в сессию:<br />
+<pre>
+$cis_base_dir/core/setvalue name value
+
+Example:
+
+$cis_base_dir/core/setvalue "prm1" "$prm1"
+$cis_base_dir/core/setvalue "prm2" "$prm2"
+$cis_base_dir/core/setvalue "prm3" "$prm3"
+
+</pre>
+<br />Чтение переменной:<br />
+<pre>
+$cis_base_dir/core/getvalue name
+
+Example:
+
+prm1=$($cis_base_dir/core/getvalue prm1)
+prm2=$($cis_base_dir/core/getvalue prm2)
+prm3=$($cis_base_dir/core/getvalue prm3)
+</pre>
+
+</BODY>
+</HTML>
