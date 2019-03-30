@@ -180,7 +180,8 @@ cd "$job_dir/$build_dir" || exit 1
 if [ -r "$job_dir/params" ]
 then
 
-  declare -A parameters
+  declare -a parameters_names
+  declare -a parameters_values
 
   while read -r str || [ -n "$str" ]
   do
@@ -192,18 +193,21 @@ then
       continue
     fi
 
-    parameters[$param_name]=$(echo "$str" | awk -F "=" '{print $2}')
+    parameters_names+=("$param_name")
+    parameters_values+=("$(echo $str | awk -F '=' '{print $2}')")
 
   done <"$job_dir/params"
 
 
-  for param_name in "${!parameters[@]}"
+  for  index in "${!parameters_names[@]}"
   do
+
+    param_name="${parameters_names[$index]}"
 
     if [ "$session_opened_by_me" = true ]
     then
   
-      echo "Type param value for parameter $param_name (\"Enter\" for default value:\"${parameters[$param_name]}\")"
+      echo "Type param value for parameter $param_name (\"Enter\" for default value:\"${parameters_values[$index]}\")"
       read -r param_value 
 
       if [ -n "$param_value" ]
@@ -218,7 +222,7 @@ then
     if [ -z "$($cis_base_dir/core/getparam $param_name)" ]
     then
 
-      param_value=${parameters["$param_name"]}
+      param_value=${parameters_values["$index"]}
 
       $cis_base_dir/core/setparam "$param_name" "$param_value"
       $cis_base_dir/core/sessionlog "action=set_call_param_to_default param_name=$param_name param_value=$param_value"
