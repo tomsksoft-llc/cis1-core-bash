@@ -244,7 +244,7 @@ echo "$session_id" >output.txt
 echo "session_id=$session_id action=start_job job_name=$job_name build_dir=$build_dir pid=$$ ppid=$PPID" >>output.txt
 echo "parent_job_name=$parent_job_name parent_job_build_number=$parent_job_build_number" >>output.txt
 
-
+echo "$session_id" > ./session_id.txt
 
 /bin/bash script >>output.txt 2>&1
 
