@@ -11,7 +11,7 @@
 !jobs/internal/*/
 !jobs/internal/*/script
 !jobs/internal/*/params
-!jobs/internal/*/config
+!jobs/internal/*/job.conf
 
 !libs/
 !libs/*

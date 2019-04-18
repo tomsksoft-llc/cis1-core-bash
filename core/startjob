@@ -36,6 +36,13 @@ then
 
   export parent_job_build_number=""
 
+  # it's FAKE!!! the values must be read from "conf" file
+  export startjob="startjob"
+  export setparam="setparam"
+  export getparam="getparam"
+  export setvalue="setvalue"
+  export getvalue="getvalue"
+
 else
 
   export session_opened_by_me=false

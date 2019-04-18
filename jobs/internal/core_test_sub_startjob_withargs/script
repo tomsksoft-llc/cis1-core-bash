@@ -8,9 +8,9 @@ echo "---- start of cat:"
 cat $cis_base_dir/sessions/$session_id.prm
 echo "---- end of cat."
 
-prm1=$($cis_base_dir/core/getparam prm1)
-prm2=$($cis_base_dir/core/getparam prm2)
-prm3=$($cis_base_dir/core/getparam prm3)
+prm1=$($cis_base_dir/core/$getparam prm1)
+prm2=$($cis_base_dir/core/$getparam prm2)
+prm3=$($cis_base_dir/core/$getparam prm3)
 
 
 echo "I'm job for read parameters prm1 prm2 prm3:"
@@ -20,6 +20,6 @@ echo "prm2=$prm2"
 echo "prm3=$prm3"
 
 
-$cis_base_dir/core/setvalue "prm1" "$prm1"
-$cis_base_dir/core/setvalue "prm2" "$prm2"
-$cis_base_dir/core/setvalue "prm3" "$prm3"
+$cis_base_dir/core/$setvalue "prm1" "$prm1"
+$cis_base_dir/core/$setvalue "prm2" "$prm2"
+$cis_base_dir/core/$setvalue "prm3" "$prm3"

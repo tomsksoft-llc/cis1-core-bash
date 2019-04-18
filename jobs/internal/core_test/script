@@ -58,9 +58,9 @@ echo "Start test: $test_name"
 
 echo "Set value with name \"test_setvalue\" to \"test set value\""
 
-$cis_base_dir/core/setvalue "test_setvalue" "test set value"
+$cis_base_dir/core/$setvalue "test_setvalue" "test set value"
 
-test_setvalue=$($cis_base_dir/core/getvalue test_setvalue)
+test_setvalue=$($cis_base_dir/core/$getvalue test_setvalue)
 
 echo "Read test_setvalue with getvalue function result is: \"$test_setvalue\""
 
@@ -94,13 +94,13 @@ status="PASSED"
 echo ""
 echo "Start test: $test_name"
 
-"$cis_base_dir/core/startjob" "internal/core_test_sub_startjob_woargs"
+"$cis_base_dir/core/$startjob" "internal/core_test_sub_startjob_woargs"
 
 echo "Exit status of execution job core_test_sub_startjob_woargs is $?"
 
 
-last_job_name=$($cis_base_dir/core/getvalue last_job_name)
-last_job_build_number=$($cis_base_dir/core/getvalue last_job_build_number)
+last_job_name=$($cis_base_dir/core/$getvalue last_job_name)
+last_job_build_number=$($cis_base_dir/core/$getvalue last_job_build_number)
 
 echo "Value of last_job_name is $last_job_name"
 echo "Value of last_job_build_number is $last_job_build_number"
@@ -148,8 +148,8 @@ echo "Start test: $test_name"
 prepared_prm2="set to the non empty value"
 prepared_prm3="replace default value"
 
-$cis_base_dir/core/setparam "prm2" "$prepared_prm2"
-$cis_base_dir/core/setparam "prm3" "$prepared_prm3"
+$cis_base_dir/core/$setparam "prm2" "$prepared_prm2"
+$cis_base_dir/core/$setparam "prm3" "$prepared_prm3"
 
 echo "Now we have in call params array:"
 echo "---- start of cat:"
@@ -157,14 +157,14 @@ cat $cis_base_dir/sessions/$session_id.prm
 echo "---- end of cat."
 
 echo "Start job core_test_sub_startjob_withargs"
-"$cis_base_dir/core/startjob" "internal/core_test_sub_startjob_withargs"
+"$cis_base_dir/core/$startjob" "internal/core_test_sub_startjob_withargs"
 
 echo "exit status=$?"
 echo ""
 
-prm1=$($cis_base_dir/core/getvalue prm1)
-prm2=$($cis_base_dir/core/getvalue prm2)
-prm3=$($cis_base_dir/core/getvalue prm3)
+prm1=$($cis_base_dir/core/$getvalue prm1)
+prm2=$($cis_base_dir/core/$getvalue prm2)
+prm3=$($cis_base_dir/core/$getvalue prm3)
 
 echo "Child job just set his parameters prm1, prm2 and prm3 to session values. What I see in session values:"
 echo "prm1=$prm1"
@@ -195,7 +195,7 @@ echo "---- start of cat session params file:"
 cat "$cis_base_dir/sessions/$session_id.prm"
 echo "---- end of cat."
 
-prm1=$($cis_base_dir/core/getparam prm1)
+prm1=$($cis_base_dir/core/$getparam prm1)
 
 echo "Result of call getparam must be empty: prm1=\"$prm1\""
 
