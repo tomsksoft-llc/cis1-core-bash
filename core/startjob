@@ -184,7 +184,7 @@ cd "$job_dir/$build_dir" || exit 1
 
 
 
-if [ -r "$job_dir/params" ]
+if [ -r "$job_dir/job.params" ]
 then
 
   declare -a parameters_names
@@ -203,7 +203,7 @@ then
     parameters_names+=("$param_name")
     parameters_values+=("$(echo $str | awk -F '=' '{print $2}')")
 
-  done <"$job_dir/params"
+  done <"$job_dir/job.params"
 
 
   for  index in "${!parameters_names[@]}"
