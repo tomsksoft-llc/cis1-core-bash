@@ -18,7 +18,7 @@ function job_maintenance()
 
 local job_dir=$1
 
-values_file="$job_dir/config"
+values_file="$job_dir/job.conf"
 
 
 
@@ -213,13 +213,13 @@ done
 
 
 
-while [ "1" = "1" ]
+for i in {1..10..1}
 do
 
-sleep 150
+  sleep 150
 
-$cis_base_dir/core/corelog "action=start_projects_maintenance_loop"
+  $cis_base_dir/core/corelog "action=start_projects_maintenance_loop"
 
-projects_maintenance_loop
+  projects_maintenance_loop
 
 done
