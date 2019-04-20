@@ -1,0 +1,12 @@
+#!/bin/bash
+
+echo ""
+echo "################################################################################"
+echo "Start core update..."
+echo ""
+
+git pull origin master
+
+echo "Done."
+echo "See log above for details."
+echo "################################################################################"
