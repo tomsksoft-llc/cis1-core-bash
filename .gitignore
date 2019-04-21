@@ -13,9 +13,6 @@
 !jobs/internal/*/params
 !jobs/internal/*/job.conf
 
-!libs/
-!libs/*
-
 !logs/
 !logs/.gitignore
 
