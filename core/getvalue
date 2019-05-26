@@ -11,7 +11,7 @@ do
   
   str_value_name=$(echo $str | awk -F "=" '{print $1}')
 
-  str_value=$(echo $str | awk -F "=" '{print $2}')
+  str_value=$(echo $str | awk -F $str_value_name= '{print $2}')
 
 
   if [ "$str_value_name" = "$value_name" ]

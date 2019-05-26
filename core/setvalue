@@ -28,8 +28,6 @@ do
     continue
   fi
 
-  str_value=$(echo $str | awk -F "=" '{print $2}')
-
 
   if [ "$str_value_name" = "$value_name" ]
   then

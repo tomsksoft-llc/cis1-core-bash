@@ -145,7 +145,7 @@ echo ""
 echo "Start test: $test_name"
 
 
-prepared_prm2="set to the non empty value"
+prepared_prm2="set to the = non empty value"
 prepared_prm3="replace default value"
 
 $cis_base_dir/core/$setparam "prm2" "$prepared_prm2"
