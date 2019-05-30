@@ -4,9 +4,9 @@ usage() {
 
   echo "Usage cis_cron:"
   echo ""
-  echo 'cis_cron <--add | -a > <cron_exp> </project/job>    to add job into sheduled tasks'
-  echo 'cis_cron <--del | -d > <cron_exp> </project/job>    to delete job from sheduled tasks'
-  echo 'cis_cron <–-list | -l > [mask]                      to list sheduled tasks'
+  echo 'cis_cron <--add | -a > <cron_exp> </project/job>    add job into scheduled tasks'
+  echo 'cis_cron <--del | -d > <cron_exp> </project/job>    delete job from scheduled tasks'
+  echo 'cis_cron <–-list | -l > [mask]                      list scheduled tasks'
   echo ""
   echo "Where cron_exp is regular crontab expression, i.e.: '*/2 * * * *'"
   echo ""
@@ -41,7 +41,7 @@ case "$operation" in
 
   "--list" | "-l")
   
-    echo "cis sheduled tasks list for $cis_base_dir is:"
+    echo "cis scheduled tasks list for $cis_base_dir is:"
     exit 0
   ;;
 
